@@ -7,7 +7,7 @@ pipeline {
     }
   }
     environment {
-        container = "/kaniko/executor -f /home/jenkins/agent/workspace/devsecops-demo/Dockerfile -c /home/jenkins/agent/workspace/devsecops-demo --insecure --skip-tls-verify '--cache=true' '--destination=docker.io/3788/dso-demo:latest'"
+        container = "/kaniko/executor -f /home/jenkins/agent/workspace/Devsecops/Dockerfile -c /home/jenkins/agent/workspace/Devsecops --insecure --skip-tls-verify '--cache=true' '--destination=docker.io/3788/dso-demo:latest'"
     }
   stages {
     stage('Build') {
