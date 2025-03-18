@@ -6,6 +6,9 @@ pipeline {
       idleMinutes 1
     }
   }
+    environment {
+        container = "/kaniko/executor -f /home/jenkins/agent/workspace/devsecops-demo/Dockerfile -c /home/jenkins/agent/workspace/devsecops-demo --insecure --skip-tls-verify '--cache=true' '--destination=docker.io/3788/dso-demo:latest'"
+    }
   stages {
     stage('Build') {
       parallel {
@@ -42,7 +45,9 @@ pipeline {
           steps {
             container('kaniko') {
               //sh '/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo'
-              sh '/kaniko/executor -f $(pwd)/Dockerfile -c $(pwd) --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo:latest'
+              //sh '/kaniko/executor -f $(pwd)/Dockerfile -c $(pwd) --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo:latest'
+              sh "${container}"
+
             }
           }
         }
