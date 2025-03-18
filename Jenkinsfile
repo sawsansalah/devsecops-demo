@@ -38,14 +38,15 @@ pipeline {
             }
           }
         }
-      }
-    }
-
-    stage('Deploy to Dev') {
-      steps {
-        // TODO
-        sh "echo done"
-      }
-    }
-  }
-}
+        stage('Docker BnP') {
+          steps {
+            container('kaniko') {
+              //sh '/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo'
+              sh '/kaniko/executor -f $(pwd)/Dockerfile -c $(pwd) --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo:latest'
+            }
+          }
+        }
+      }  // Closing 'parallel' block
+    }  // Closing 'Package' stage
+  }  // Closing 'stages' block
+}  // Closing 'pipeline' block
