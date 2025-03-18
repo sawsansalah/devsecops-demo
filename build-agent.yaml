@@ -38,10 +38,8 @@ spec:
       image: gcr.io/kaniko-project/executor:v1.6.0-debug
       imagePullPolicy: Always
       command:
-        #- sleep
-        - "--dockerfile=$(pwd)/Dockerfile"
-        - "--context=$(pwd)"
-        - "--destination=docker.io/3788/dso-demo:latest"
+        - sleep
+    
       args:
         - "99d"
       volumeMounts:
