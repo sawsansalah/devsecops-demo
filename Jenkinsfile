@@ -21,16 +21,14 @@ pipeline {
         }
       }
     }
-    stage('Testing') {
-          parallel {
-            stage('Test') {
-              steps {
-            container('maven') {
-               sh 'mvn test'
-            }
-            }
-            }
-          }
+    stage('Test') {
+          steps {
+        container('maven') {
+            sh 'mvn test'
+        }
+        }
+        }
+          
     stage('SCA') {
       steps {
       container('maven') {
