@@ -29,7 +29,7 @@ pipeline {
       }
     }
     }
-
+    }
         stage('Package') {
           parallel {
             stage('Create Jarfile') {
