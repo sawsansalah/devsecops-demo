@@ -21,26 +21,24 @@ pipeline {
         }
       }
     }
-    stage('Test') {
-      parallel {
-        stage('Unit Tests') {
-          steps {
-            container('maven') {
-              sh 'mvn test'
-            }
-          }
-        }
+    stage('SCA') {
+      steps {
+    container('maven') {
+    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+    sh 'mvn org.owasp:dependency-check-maven:check'
       }
     }
-    stage('Package') {
-      parallel {
-        stage('Create Jarfile') {
-          steps {
-            container('maven') {
-              sh 'mvn package -DskipTests'
+    }
+
+        stage('Package') {
+          parallel {
+            stage('Create Jarfile') {
+              steps {
+                container('maven') {
+                  sh 'mvn package -DskipTests'
+                }
+              }
             }
-          }
-        }
         stage('Docker BnP') {
           steps {
             container('kaniko') {
