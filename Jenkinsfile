@@ -37,18 +37,22 @@ pipeline {
 
         stage('SCA') {
           steps {
-            container('maven') {
-              catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh 'mvn org.owasp:dependency-check-maven:check'
+            node { // Add a node block to provide workspace context
+              container('maven') {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                  sh 'mvn org.owasp:dependency-check-maven:check'
+                }
               }
             }
           }
 
           post {
             always {
-              archiveArtifacts allowEmptyArchive: true, artifacts: 'target/dependency-check-report.html', fingerprint: true, onlyIfSuccessful: true
-              // Uncomment the following line if you want to publish the dependency check report
-              // dependencyCheckPublisher pattern: 'target/dependency-check-report.html'
+              node { // Add a node block for archiveArtifacts
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'target/dependency-check-report.html', fingerprint: true, onlyIfSuccessful: true
+                // Uncomment the following line if you want to publish the dependency check report
+                // dependencyCheckPublisher pattern: 'target/dependency-check-report.html'
+              }
             }
           }
         }
