@@ -6,9 +6,12 @@ pipeline {
       idleMinutes 1
     }
   }
-    environment {
-        container = "/kaniko/executor -f /home/jenkins/agent/workspace/Devsecops/Dockerfile -c /home/jenkins/agent/workspace/Devsecops --insecure --skip-tls-verify '--cache=true' '--destination=docker.io/3788/dso-demo:latest'"
-    }
+
+  environment {
+    // Define the Kaniko command as an environment variable
+    KANIKO_COMMAND = "/kaniko/executor -f /home/jenkins/agent/workspace/Devsecops/Dockerfile -c /home/jenkins/agent/workspace/Devsecops --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo:latest"
+  }
+
   stages {
     stage('Build') {
       parallel {
@@ -21,29 +24,36 @@ pipeline {
         }
       }
     }
-    stage('Test') {
+
+    stage('Testing') {
+      parallel {
+        stage('Test') {
           steps {
-        container('maven') {
-            sh 'mvn test'
+            container('maven') {
+              sh 'mvn test'
+            }
+          }
         }
-        }
-        }
-          
-    stage('SCA') {
-      steps {
-      container('maven') {
-      catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-      sh 'mvn org.owasp:dependency-check-maven:check'
-      }
-      }
       }
     }
-    post {
-      always {
+
+    stage('SCA') {
+      steps {
+        container('maven') {
+          catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+            sh 'mvn org.owasp:dependency-check-maven:check'
+          }
+        }
+      }
+
+      post {
+        always {
           archiveArtifacts allowEmptyArchive: true, artifacts: 'target/dependency-check-report.html', fingerprint: true, onlyIfSuccessful: true
-      // dependencyCheckPublisher pattern: 'report.xml'
+          // Uncomment the following line if you want to publish the dependency check report
+          // dependencyCheckPublisher pattern: 'target/dependency-check-report.html'
+        }
       }
-      }
+    }
 
     stage('Package') {
       parallel {
@@ -54,17 +64,16 @@ pipeline {
             }
           }
         }
-    stage('Docker BnP') {
-      steps {
-        container('kaniko') {
-          //sh '/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo'
-          //sh '/kaniko/executor -f $(pwd)/Dockerfile -c $(pwd) --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo:latest'
-          sh "${container}"
 
+        stage('Docker Build & Push') {
+          steps {
+            container('kaniko') {
+              // Use the environment variable for the Kaniko command
+              sh "${KANIKO_COMMAND}"
+            }
+          }
         }
-      }
-    }
-  }  // Closing 'parallel' block
-}  // Closing 'Package' stage
-}  // Closing 'stages' block
-}  // Closing 'pipeline' block
+      } // Closing 'parallel' block
+    } // Closing 'Package' stage
+  } // Closing 'stages' block
+} // Closing 'pipeline' block
