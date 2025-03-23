@@ -9,7 +9,7 @@ pipeline {
 
   environment {
     // Define the Kaniko command as an environment variable
-    KANIKO_COMMAND = "/kaniko/executor -f /home/jenkins/agent/workspace/Devsecops/Dockerfile -c /home/jenkins/agent/workspace/Devsecops --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo:latest"
+      container = "/kaniko/executor -f /home/jenkins/agent/workspace/Devsecops/Dockerfile -c /home/jenkins/agent/workspace/Devsecops --insecure --skip-tls-verify '--cache=true' '--destination=docker.io/3788/dso-demo:latest'"
   }
 
   stages {
@@ -69,7 +69,8 @@ pipeline {
           steps {
             container('kaniko') {
               // Use the environment variable for the Kaniko command
-              sh "${KANIKO_COMMAND}"
+              sh "${container}"
+
             }
           }
         }
