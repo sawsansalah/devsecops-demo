@@ -9,7 +9,7 @@ pipeline {
 
   environment {
     // Define the Kaniko command as an environment variable
-      container = "/kaniko/executor -f /home/jenkins/agent/workspace/Devsecops/Dockerfile -c /home/jenkins/agent/workspace/Devsecops --insecure --skip-tls-verify '--cache=true' '--destination=docker.io/3788/dso-demo:latest'"
+    container = "/kaniko/executor -f /home/jenkins/agent/workspace/Devsecops/Dockerfile -c /home/jenkins/agent/workspace/Devsecops --insecure --skip-tls-verify '--cache=true' '--destination=docker.io/3788/dso-demo:latest'"
   }
 
   stages {
@@ -25,7 +25,7 @@ pipeline {
       }
     }
 
-    stage('Testing') {
+    stage('Testing and Security Checks') {
       parallel {
         stage('Test') {
           steps {
@@ -34,38 +34,38 @@ pipeline {
             }
           }
         }
-      }
-    }
 
-    stage('SCA') {
-      steps {
-        container('maven') {
-          catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-            sh 'mvn org.owasp:dependency-check-maven:check'
+        stage('SCA') {
+          steps {
+            container('maven') {
+              catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                sh 'mvn org.owasp:dependency-check-maven:check'
+              }
+            }
+          }
+
+          post {
+            always {
+              archiveArtifacts allowEmptyArchive: true, artifacts: 'target/dependency-check-report.html', fingerprint: true, onlyIfSuccessful: true
+              // Uncomment the following line if you want to publish the dependency check report
+              // dependencyCheckPublisher pattern: 'target/dependency-check-report.html'
+            }
           }
         }
-      }
 
-      post {
-        always {
-          archiveArtifacts allowEmptyArchive: true, artifacts: 'target/dependency-check-report.html', fingerprint: true, onlyIfSuccessful: true
-          // Uncomment the following line if you want to publish the dependency check report
-          // dependencyCheckPublisher pattern: 'target/dependency-check-report.html'
+        stage('OSS License Checker') {
+          steps {
+            container('licensefinder') {
+              sh 'ls -al'
+              sh '''#!/bin/bash --login
+              /bin/bash --login rvm use default
+              gem install license_finder license_finder
+              '''
+            }
+          }
         }
-      }
-    }
-
-    stage('OSS License Checker') { 
-      steps {
-        container('licensefinder') { 
-          sh 'ls -al'
-          sh '''#!/bin/bash --login
-          /bin/bash --login rvm use default
-          gem install license_finder license_finder
-            '''
-      }
-      }
-      }
+      } // Closing 'parallel' block for Testing and Security Checks
+    } // Closing 'Testing and Security Checks' stage
 
     stage('Package') {
       parallel {
@@ -82,11 +82,10 @@ pipeline {
             container('kaniko') {
               // Use the environment variable for the Kaniko command
               sh "${container}"
-
             }
           }
         }
-      } // Closing 'parallel' block
+      } // Closing 'parallel' block for Package
     } // Closing 'Package' stage
   } // Closing 'stages' block
 } // Closing 'pipeline' block
