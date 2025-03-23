@@ -21,15 +21,29 @@ pipeline {
         }
       }
     }
-    stage('SCA') {
-      steps {
-    container('maven') {
-    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-    sh 'mvn org.owasp:dependency-check-maven:check'
-      }
-    }
-    }
-    }
+    stage('Testing') {
+          parallel {
+            stage('Test') {
+              steps {
+            container('maven') {
+               sh 'mvn test'
+            }
+            }
+            }
+
+            stage('SCA') {
+              steps {
+            container('maven') {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+            sh 'mvn org.owasp:dependency-check-maven:check'
+              }
+            }
+            }
+            }
+
+
+          } 
+    }   
         stage('Package') {
           parallel {
             stage('Create Jarfile') {
