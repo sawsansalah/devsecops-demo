@@ -38,38 +38,33 @@ pipeline {
       }
       }
     }
-      post {
+    post {
       always {
           archiveArtifacts allowEmptyArchive: true, artifacts: 'target/dependency-check-report.html', fingerprint: true, onlyIfSuccessful: true
       // dependencyCheckPublisher pattern: 'report.xml'
       }
       }
-      
-      
 
-
-  
-     
-        stage('Package') {
-          parallel {
-            stage('Create Jarfile') {
-              steps {
-                container('maven') {
-                  sh 'mvn package -DskipTests'
-                }
-              }
-            }
-        stage('Docker BnP') {
+    stage('Package') {
+      parallel {
+        stage('Create Jarfile') {
           steps {
-            container('kaniko') {
-              //sh '/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo'
-              //sh '/kaniko/executor -f $(pwd)/Dockerfile -c $(pwd) --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo:latest'
-              sh "${container}"
-
+            container('maven') {
+              sh 'mvn package -DskipTests'
             }
           }
         }
-      }  // Closing 'parallel' block
-    }  // Closing 'Package' stage
-  }  // Closing 'stages' block
+    stage('Docker BnP') {
+      steps {
+        container('kaniko') {
+          //sh '/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo'
+          //sh '/kaniko/executor -f $(pwd)/Dockerfile -c $(pwd) --insecure --skip-tls-verify --cache=true --destination=docker.io/3788/dso-demo:latest'
+          sh "${container}"
+
+        }
+      }
+    }
+  }  // Closing 'parallel' block
+}  // Closing 'Package' stage
+}  // Closing 'stages' block
 }  // Closing 'pipeline' block
