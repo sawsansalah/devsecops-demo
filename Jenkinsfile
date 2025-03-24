@@ -66,7 +66,7 @@ pipeline {
       }
       }
       }
-    stage('Generate SBOM') {
+  /*  stage('Generate SBOM') {
       steps {
       container('maven') {
       sh 'mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom'
@@ -80,7 +80,7 @@ pipeline {
       archiveArtifacts allowEmptyArchive: true, artifacts: 'target/bom.xml', fingerprint: true, onlyIfSuccessful: true
       }
       }
-      } 
+      } */ 
     stage('Package') {
       parallel {
         stage('Create Jarfile') {
